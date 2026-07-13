@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Hospital Arc</title>
+<meta name="description" content="The Hospital Arc — a short first-person story. Read in English or Thai.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23f0a63a'/%3E%3Ctext y='72' x='50' font-size='60' text-anchor='middle'%3E%F0%9F%8F%A5%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #0e1116;
+    --bg-soft: #161b22;
+    --surface: #1c232d;
+    --border: #2a323d;
+    --text: #e6e9ee;
+    --text-soft: #aab2bf;
+    --text-dim: #7d8694;
+    --accent: #f0a63a;
+    --accent-2: #ff5470;
+    --accent-soft: rgba(240,166,58,.14);
+    --shadow: 0 8px 30px rgba(0,0,0,.35);
+    --serif: "Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Noto Serif",serif;
+    --sans: system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Thai",sans-serif;
+    --thai: "Noto Sans Thai","Sarabun","Leelawadee UI",system-ui,sans-serif;
+  }
+  html[data-theme="light"] {
+    --bg: #f6f3ec;
+    --bg-soft: #efeadf;
+    --surface: #fffdf8;
+    --border: #e0d8c8;
+    --text: #26221c;
+    --text-soft: #55503f;
+    --text-dim: #8a8372;
+    --accent: #c9791a;
+    --accent-2: #d63a58;
+    --accent-soft: rgba(201,121,26,.12);
+    --shadow: 0 8px 30px rgba(120,100,60,.15);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    transition: background .3s ease, color .3s ease;
+  }
+  /* reading progress bar */
+  #progress {
+    position: fixed; top: 0; left: 0; height: 3px; width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    z-index: 60; transition: width .1s linear;
+  }
+  /* top bar */
+  header {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; padding: 12px clamp(16px, 5vw, 40px);
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .brand .dot {
+    width: 30px; height: 30px; border-radius: 9px; flex: none;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: grid; place-items: center; font-size: 16px;
+    box-shadow: 0 4px 14px var(--accent-soft);
+  }
+  .brand h1 {
+    font-size: 15px; margin: 0; font-weight: 700; letter-spacing: .2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .controls { display: flex; align-items: center; gap: 8px; flex: none; }
+  .seg {
+    display: inline-flex; background: var(--bg-soft);
+    border: 1px solid var(--border); border-radius: 10px; padding: 3px; gap: 2px;
+  }
+  .seg button {
+    border: 0; background: transparent; color: var(--text-soft);
+    font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+    padding: 5px 12px; border-radius: 7px; transition: all .2s ease;
+  }
+  .seg button.active { background: var(--accent); color: #1a1200; }
+  html[data-theme="light"] .seg button.active { color: #fff; }
+  .icon-btn {
+    border: 1px solid var(--border); background: var(--bg-soft);
+    color: var(--text-soft); width: 38px; height: 34px; border-radius: 10px;
+    cursor: pointer; font-size: 16px; display: grid; place-items: center;
+    transition: all .2s ease;
+  }
+  .icon-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* hero */
+  .hero {
+    max-width: 720px; margin: 0 auto; padding: clamp(40px,8vw,72px) clamp(20px,5vw,24px) 8px;
+    text-align: center;
+  }
+  .hero .kicker {
+    color: var(--accent); font-size: 12px; font-weight: 700;
+    letter-spacing: 3px; text-transform: uppercase;
+  }
+  .hero h2 {
+    font-family: var(--serif); font-size: clamp(34px, 8vw, 56px);
+    line-height: 1.05; margin: 14px 0 10px; font-weight: 700;
+  }
+  .hero .sub {
+    color: var(--text-soft); font-style: italic; font-family: var(--serif);
+    font-size: clamp(16px,3.6vw,19px); max-width: 34ch; margin: 0 auto;
+  }
+  .hero .meta {
+    margin-top: 22px; display: inline-flex; gap: 14px; flex-wrap: wrap;
+    justify-content: center; color: var(--text-dim); font-size: 13px;
+  }
+  .hero .meta span { display: inline-flex; align-items: center; gap: 6px; }
+
+  /* article */
+  main { max-width: 720px; margin: 0 auto; padding: 0 clamp(20px,5vw,24px) 100px; }
+  .divider {
+    display: flex; align-items: center; justify-content: center;
+    margin: 40px 0; color: var(--text-dim); letter-spacing: 6px; font-size: 12px;
+    user-select: none;
+  }
+  .divider::before, .divider::after {
+    content: ""; height: 1px; flex: 1; max-width: 90px;
+    background: linear-gradient(90deg, transparent, var(--border));
+  }
+  .divider::after { background: linear-gradient(90deg, var(--border), transparent); }
+
+  .section-head {
+    font-family: var(--serif); scroll-margin-top: 80px;
+  }
+  .section-head.chapter {
+    font-size: 13px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--accent); margin: 8px 0 4px;
+  }
+  .section-head.stamp {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: var(--sans); font-size: 14px; font-weight: 700;
+    color: var(--text); background: var(--accent-soft);
+    border: 1px solid var(--border); border-radius: 999px;
+    padding: 6px 16px; letter-spacing: 1px; margin: 4px 0;
+  }
+  .section-head.stamp::before { content: "🕑"; font-size: 13px; }
+
+  p.para { font-family: var(--serif); font-size: clamp(17px,2.5vw,19px); margin: 18px 0; }
+  p.aside {
+    font-family: var(--serif); font-style: italic; color: var(--accent);
+    border-left: 3px solid var(--accent); padding: 4px 0 4px 16px;
+    margin: 18px 0; font-size: clamp(16px,2.4vw,18px);
+    background: linear-gradient(90deg, var(--accent-soft), transparent);
+  }
+  .status {
+    display: inline-flex; align-items: center; gap: 10px; margin: 22px 0;
+    font-family: var(--sans); font-weight: 800; letter-spacing: 1.5px;
+    text-transform: uppercase; font-size: 14px;
+    color: var(--accent-2); border: 2px dashed var(--accent-2);
+    border-radius: 12px; padding: 10px 18px; background: rgba(255,84,112,.08);
+  }
+  .status::before { content: "⚠"; }
+  .shout {
+    text-align: center; font-family: var(--serif); font-weight: 800;
+    font-size: clamp(24px,6vw,38px); letter-spacing: 4px; margin: 30px 0;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  ul.notes { list-style: none; padding: 0; margin: 20px 0; }
+  ul.notes li {
+    font-family: var(--serif); font-size: clamp(16px,2.4vw,18px);
+    padding: 8px 0 8px 30px; position: relative; border-bottom: 1px dashed var(--border);
+  }
+  ul.notes li::before {
+    content: "▸"; position: absolute; left: 6px; color: var(--accent); font-weight: 700;
+  }
+  /* thai typography */
+  html[lang="th"] p.para, html[lang="th"] p.aside,
+  html[lang="th"] ul.notes li, html[lang="th"] .hero .sub,
+  html[lang="th"] .section-head.chapter, html[lang="th"] .shout {
+    font-family: var(--thai); line-height: 1.9;
+  }
+  html[lang="th"] .hero h2 { font-family: var(--thai); }
+
+  footer {
+    max-width: 720px; margin: 0 auto; padding: 30px clamp(20px,5vw,24px) 60px;
+    border-top: 1px solid var(--border); color: var(--text-dim);
+    font-size: 13px; text-align: center;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  #loader { text-align: center; padding: 80px 20px; color: var(--text-dim); }
+  .spin {
+    width: 34px; height: 34px; border: 3px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%;
+    margin: 0 auto 16px; animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* to-top button */
+  #toTop {
+    position: fixed; right: 20px; bottom: 20px; z-index: 40;
+    width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border);
+    background: var(--surface); color: var(--accent); font-size: 20px; cursor: pointer;
+    box-shadow: var(--shadow); opacity: 0; pointer-events: none;
+    transition: opacity .3s ease, transform .3s ease;
+  }
+  #toTop.show { opacity: 1; pointer-events: auto; }
+  #toTop:hover { transform: translateY(-3px); }
+  .reveal { opacity: 0; transform: translateY(14px); }
+  .reveal.in { opacity: 1; transform: none; transition: opacity .6s ease, transform .6s ease; }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; }
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+<div id="progress"></div>
+
+<header>
+  <div class="brand">
+    <span class="dot">🏥</span>
+    <h1 data-i18n="title">The Hospital Arc</h1>
+  </div>
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Language">
+      <button id="lang-en" class="active" aria-pressed="true">EN</button>
+      <button id="lang-th" aria-pressed="false">TH</button>
+    </div>
+    <button class="icon-btn" id="theme" aria-label="Toggle theme" title="Toggle theme">🌙</button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="kicker" data-i18n="kicker">A Short Story</div>
+  <h2 data-i18n="title">The Hospital Arc</h2>
+  <p class="sub" id="hero-sub"></p>
+  <div class="meta">
+    <span id="meta-time">☕ ~6 min read</span>
+    <span data-i18n="metaPov">👁 First-person</span>
+    <span>📅 10–11 July</span>
+  </div>
+</section>
+
+<main id="story">
+  <div id="loader"><div class="spin"></div><span data-i18n="loading">Loading the story…</span></div>
+</main>
+
+<footer>
+  <p id="foot-note"></p>
+  <p>© <span id="year"></span> · The Hospital Arc · <a href="https://github.com/zyser007/the-hospital-arc" target="_blank" rel="noopener">Source on GitHub</a></p>
+</footer>
+
+<button id="toTop" aria-label="Back to top">↑</button>
+
+<script>
+(function () {
+  "use strict";
+
+  var I18N = {
+    en: {
+      title: "The Hospital Arc",
+      kicker: "A Short Story",
+      loading: "Loading the story…",
+      metaPov: "👁 First-person",
+      time: "☕ ~6 min read",
+      foot: "Thanks for reading. Take care of your health. 🫶",
+      file: "en.txt"
+    },
+    th: {
+      title: "อาร์คโรงพยาบาล",
+      kicker: "เรื่องสั้น",
+      loading: "กำลังโหลดเรื่องราว…",
+      metaPov: "👁 มุมมองบุคคลที่หนึ่ง",
+      time: "☕ อ่าน ~6 นาที",
+      foot: "ขอบคุณที่อ่านจนจบ ดูแลสุขภาพด้วยนะ 🫶",
+      file: "th.txt"
+    }
+  };
+
+  var DIVIDER = /^[━—–\-]{5,}$/;         // section separator line
+  var cache = {};                        // filename -> raw text
+  var current = "en";
+
+  var $ = function (s) { return document.querySelector(s); };
+  var storyEl = $("#story");
+
+  // ---- classify a single line into a rendered element ----
+  function isStamp(line) {
+    // e.g. "10 JULY — 09:00"  or  "11 JULY — 12:50"
+    return /\b\d{1,2}\s+[A-Za-z]+\s*[—-]\s*\d{1,2}[:.]\d{2}\b/.test(line);
+  }
+  function isChapter(line) {
+    return /^(PROLOGUE|EPILOGUE|CHAPTER|บทนำ|บทส่งท้าย)\b/i.test(line.trim());
+  }
+  function isAside(line) {
+    var t = line.trim();
+    return t.charAt(0) === "—" && t.charAt(t.length - 1) === "—"; // — ... —
+  }
+  function isStatus(line) {
+    return /^STATUS EFFECT/i.test(line.trim());
+  }
+  function isShout(line) {
+    var t = line.trim();
+    // single all-caps word / exclamation-only lines: BODYGUARD, BANKAI!!, CUT TO BLACK.
+    return /^[A-Z0-9 !.]{4,}$/.test(t) && !isStamp(t) && !isChapter(t) && /[A-Z]/.test(t)
+           && t.split(/\s+/).length <= 3 || /^บังไค/.test(t);
+  }
+  function isBullet(line) {
+    return /^[••]/.test(line.trim());
+  }
+
+  function esc(s) {
+    return s.replace(/[&<>]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c];
+    });
+  }
+
+  function stripAside(t) { return t.trim().replace(/^—\s*/, "").replace(/\s*—$/, ""); }
+
+  // ---- parse raw text into an ordered list of block objects ----
+  function parse(raw) {
+    var lines = raw.replace(/\r/g, "").split("\n");
+    var blocks = [];
+    var intro = null;
+    var pendingList = null;
+
+    function flushList() {
+      if (pendingList) { blocks.push({ type: "list", items: pendingList }); pendingList = null; }
+    }
+
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+      var t = line.trim();
+      if (t === "") continue;
+
+      if (DIVIDER.test(t)) { flushList(); blocks.push({ type: "divider" }); continue; }
+
+      if (isBullet(t)) {
+        if (!pendingList) pendingList = [];
+        pendingList.push(t.replace(/^[••]\s*/, ""));
+        continue;
+      }
+      flushList();
+
+      if (intro === null && blocks.length === 0) { intro = t; continue; } // first line = POV subtitle
+      if (isStamp(t))       { blocks.push({ type: "stamp", text: t }); continue; }
+      if (isChapter(t))     { blocks.push({ type: "chapter", text: t }); continue; }
+      if (isStatus(t))      { blocks.push({ type: "status", text: t }); continue; }
+      if (isAside(t))       { blocks.push({ type: "aside", text: stripAside(t) }); continue; }
+      if (isShout(t))       { blocks.push({ type: "shout", text: t }); continue; }
+      blocks.push({ type: "para", text: t });
+    }
+    flushList();
+    return { intro: intro, blocks: blocks };
+  }
+
+  // ---- render blocks into DOM ----
+  function render(data) {
+    $("#hero-sub").textContent = data.intro || "";
+    var frag = document.createDocumentFragment();
+    var idx = 0;
+
+    data.blocks.forEach(function (b) {
+      var el;
+      switch (b.type) {
+        case "divider":
+          el = document.createElement("div");
+          el.className = "divider"; el.textContent = "❧";
+          break;
+        case "stamp":
+          el = document.createElement("div");
+          el.className = "section-head stamp"; el.textContent = b.text;
+          el.id = "s" + (idx++);
+          break;
+        case "chapter":
+          el = document.createElement("div");
+          el.className = "section-head chapter"; el.textContent = b.text;
+          el.id = "s" + (idx++);
+          break;
+        case "status":
+          el = document.createElement("div");
+          el.className = "status"; el.textContent = b.text;
+          break;
+        case "aside":
+          el = document.createElement("p");
+          el.className = "aside"; el.textContent = b.text;
+          break;
+        case "shout":
+          el = document.createElement("div");
+          el.className = "shout"; el.textContent = b.text;
+          break;
+        case "list":
+          el = document.createElement("ul");
+          el.className = "notes";
+          b.items.forEach(function (it) {
+            var li = document.createElement("li");
+            li.textContent = it; el.appendChild(li);
+          });
+          break;
+        default:
+          el = document.createElement("p");
+          el.className = "para"; el.textContent = b.text;
+      }
+      el.classList.add("reveal");
+      frag.appendChild(el);
+    });
+
+    storyEl.innerHTML = "";
+    storyEl.appendChild(frag);
+    observeReveal();
+  }
+
+  // ---- fade-in on scroll ----
+  var io;
+  function observeReveal() {
+    if (io) io.disconnect();
+    if (!("IntersectionObserver" in window)) {
+      document.querySelectorAll(".reveal").forEach(function (n) { n.classList.add("in"); });
+      return;
+    }
+    io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+      });
+    }, { rootMargin: "0px 0px -8% 0px" });
+    document.querySelectorAll(".reveal").forEach(function (n) { io.observe(n); });
+  }
+
+  // ---- load a language ----
+  function load(lang) {
+    current = lang;
+    var t = I18N[lang];
+    document.documentElement.lang = lang;
+    // static labels
+    document.querySelectorAll("[data-i18n]").forEach(function (n) {
+      var k = n.getAttribute("data-i18n"); if (t[k]) n.textContent = t[k];
+    });
+    $("#meta-time").textContent = t.time;
+    $("#foot-note").textContent = t.foot;
+    document.title = t.title + " · Reader";
+    // buttons
+    $("#lang-en").classList.toggle("active", lang === "en");
+    $("#lang-th").classList.toggle("active", lang === "th");
+    $("#lang-en").setAttribute("aria-pressed", lang === "en");
+    $("#lang-th").setAttribute("aria-pressed", lang === "th");
+    try { localStorage.setItem("hosp-lang", lang); } catch (e) {}
+
+    if (cache[t.file]) { render(parse(cache[t.file])); return; }
+
+    storyEl.innerHTML = '<div id="loader"><div class="spin"></div><span>' + t.loading + "</span></div>";
+    fetch(t.file, { cache: "no-cache" })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
+      .then(function (txt) { cache[t.file] = txt; render(parse(txt)); })
+      .catch(function () {
+        storyEl.innerHTML = '<p class="para" style="text-align:center;color:var(--accent-2)">'
+          + "⚠ Could not load <code>" + t.file + "</code>.</p>";
+      });
+  }
+
+  // ---- theme ----
+  function setTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme);
+    $("#theme").textContent = theme === "dark" ? "🌙" : "☀️";
+    try { localStorage.setItem("hosp-theme", theme); } catch (e) {}
+  }
+
+  // ---- progress + to-top ----
+  function onScroll() {
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight;
+    var pct = max > 0 ? (h.scrollTop / max) * 100 : 0;
+    $("#progress").style.width = pct + "%";
+    $("#toTop").classList.toggle("show", h.scrollTop > 500);
+  }
+
+  // ---- wire up ----
+  $("#lang-en").addEventListener("click", function () { load("en"); });
+  $("#lang-th").addEventListener("click", function () { load("th"); });
+  $("#theme").addEventListener("click", function () {
+    setTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
+  });
+  $("#toTop").addEventListener("click", function () { window.scrollTo({ top: 0, behavior: "smooth" }); });
+  window.addEventListener("scroll", onScroll, { passive: true });
+
+  // ---- init ----
+  $("#year").textContent = "2026";
+  var savedTheme, savedLang;
+  try { savedTheme = localStorage.getItem("hosp-theme"); savedLang = localStorage.getItem("hosp-lang"); } catch (e) {}
+  if (!savedTheme) savedTheme = matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+  setTheme(savedTheme);
+  var navTh = (navigator.language || "").toLowerCase().indexOf("th") === 0;
+  load(savedLang || (navTh ? "th" : "en"));
+  onScroll();
+})();
+</script>
+</body>
+</html>
